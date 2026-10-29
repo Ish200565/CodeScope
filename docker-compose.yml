@@ -29,5 +29,14 @@ services:
       postgres: {condition: service_healthy}
       redis: {condition: service_healthy}
 
+  worker:
+    build: .
+    command: celery -A app.worker.celery_app worker --loglevel=info --concurrency=2
+    env_file: .env
+    volumes: [".:/code"]
+    depends_on:
+      postgres: {condition: service_healthy}
+      redis: {condition: service_healthy}
+
 volumes:
   pgdata:
