@@ -8,5 +8,6 @@ class Settings(BaseSettings):
     github_webhook_secret: str = ""
     github_app_id: str = ""
     github_private_key_path: str = ""
+    fail_mode:str =""
 
 settings = Settings()

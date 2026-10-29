@@ -11,6 +11,7 @@ from app.config import settings
 from app.db import get_db
 from app.models import Run
 from app.security import verify_signature
+from app.worker.tasks import process_run
 
 router = APIRouter()
 logger = logging.getLogger("uvicorn.error")  # shows up in `docker compose logs api`
@@ -98,6 +99,10 @@ async def github_webhook(
 
     logger.info("run queued: run=%s repo=%s pr=%s sha=%s", run.id, repo, number, sha[:7])
 
-    # Day 3: enqueue process_run.delay(str(run.id)) here, AFTER the commit
+    try:
+        process_run.delay(str(run.id))   # AFTER the commit, so the row exists
+    except Exception:
+        # Run stays "queued" in the DB; a sweeper can re-enqueue it later
+        logger.exception("failed to enqueue run %s", run.id)
 
     return JSONResponse(status_code=202, content={"status": "queued", "run_id": str(run.id)})

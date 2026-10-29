@@ -41,3 +41,8 @@ def client(monkeypatch):
     app.dependency_overrides[get_db] = override_get_db
     yield TestClient(app)
     app.dependency_overrides.clear()
+
+@pytest.fixture(autouse=True)
+def no_real_enqueue(monkeypatch):
+    from app.worker import tasks
+    monkeypatch.setattr(tasks.process_run, "delay", lambda *a, **k: None)
